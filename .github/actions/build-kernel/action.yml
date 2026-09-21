@@ -1156,6 +1156,22 @@ runs:
             ;;
         esac
 
+        # The KSU (non-KSUN) branch above swallows patch failures with `|| true`
+        # and has no fix-patch set to repair the rejects. A half-applied
+        # 10_enable_susfs_for_ksu.patch removes include lines from
+        # drivers/kernelsu/core/init.c while leaving the calls behind, so the
+        # tree survives patching and only dies ~15 minutes later as a pile of
+        # "call to undeclared function" errors. Fail here instead, naming the
+        # pin that actually fixes it.
+        if [ "${{ inputs.ksu_type }}" != "KSUN" ]; then
+          rejects=$(find "$KSU_FOLDER" -name '*.rej' -not -path '*/.git/*' | sort)
+          if [ -n "$rejects" ]; then
+            echo "$rejects"
+            echo "::error::SUSFS patch left $(echo "$rejects" | wc -l) reject file(s) in KernelSU: upstream KernelSU moved on from the tree the patch was written against. Pin a matching commit in .github/compatible-commits.json (ksu.main), or pass an explicit ksu_branch."
+            exit 1
+          fi
+        fi
+
         cd "$COMMON_KERNEL_FOLDER"
         if [ "${{ env.ANDROID_VER }}" = "android15" ] && [ "${{ env.KERNEL_VER }}" = "6.6" ]; then
           if ! grep -qxF '#include <trace/hooks/fs.h>' ./fs/namespace.c; then

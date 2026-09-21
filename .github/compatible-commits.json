@@ -1,5 +1,6 @@
 {
   "_comment": "Default commits resolved when no explicit branch/hash is supplied. Update these after verifying a build passes with a newer commit.",
+  "_comment_ksu_main": "Last KernelSU (main) commit that the pinned SUSFS 10_enable_susfs_for_ksu.patch still applies to with zero rejects. Upstream 4d1a87df (execveat/bionic rework of adb_root, sucompat, syscall_event_bridge, ksud_integration) is the first commit that breaks it.",
   "susfs": {
     "android12-5.10": "",
     "android13-5.15": "",
@@ -8,7 +9,7 @@
     "android16-6.12": ""
   },
   "ksu": {
-    "main": "",
+    "main": "2df350740fa5d19dfff26d931b7bd28f9ef91519",
     "dev": "234f6e040fcbca18b16d2398e1aa225712ec99ad"
   }
 }

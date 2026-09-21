@@ -28,7 +28,7 @@ on:
           - KSU
         default: KSUN
       ksu_branch:
-        description: KernelSU branch, tag, or commit (empty uses main for KSU, dev for KSUN)
+        description: KernelSU branch, tag, or commit (empty uses the known-good commit from .github/compatible-commits.json)
         required: false
         type: string
         default: ''
