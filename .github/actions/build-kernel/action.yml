@@ -798,8 +798,12 @@ runs:
               aria_log_flags="--summary-interval=5" # Show progress every 5s in debug
           fi
 
+          # Do not spoof a browser User-Agent here. GitLab answers its archive
+          # endpoint with 403 for browser-shaped UAs that do not also carry a
+          # browser's full header profile, so the hand-written Chrome/120 UA
+          # that came down with the vendored pipeline made every SUSFS fetch
+          # fail all three attempts in ~200ms each. aria2's own UA is accepted.
           local aria2_headers=(
-            "--header=User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             "--header=Accept: */*"
             "--header=Connection: keep-alive"
           )
@@ -831,6 +835,17 @@ runs:
               sleep 5
               attempt=$((attempt + 1))
           done
+
+          # The tarball endpoint is an optimisation, not a requirement. If it
+          # keeps refusing us (CDN change, another UA block, a 5xx burst),
+          # degrade to a plain clone rather than failing the whole build.
+          echo "⚠️ Archive fetch failed; falling back to git clone for $repo_name"
+          rm -rf "$repo_name" "$shm_path" 2>/dev/null
+          if git clone --quiet "$url" "$repo_name" && git -C "$repo_name" checkout --quiet "$branch"; then
+            echo "✅ Success: $repo_name synced via git clone"
+            return 0
+          fi
+          rm -rf "$repo_name" 2>/dev/null
 
           echo "::error::All attempts failed for $url"
           return 1
